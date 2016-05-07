@@ -1,0 +1,63 @@
+
+1.2.2 DiskFileUpload类
+DiskFileUpload类是Apache文件上传组件的核心类，应用程序开发人员通过这个类来与Apache文件上传组件进行交互。下面介绍DiskFileUpload类中的几个常用的重要方法。
+1．setSizeMax方法
+setSizeMax方法用于设置请求消息实体内容的最大允许大小，以防止客户端故意通过上传特大的文件来塞满服务器端的存储空间，单位为字节。其完整语法定义如下：
+    public void setSizeMax（long sizeMax）
+如果请求消息中的实体内容的大小超过了setSizeMax方法的设置值，该方法将会抛出FileUploadException异常。
+2．setSizeThreshold方法
+Apache文件上传组件在解析和处理上传数据中的每个字段内容时，需要临时保存解析出的数据。因为Java虚拟机默认可以使用的内存空间是有限的（笔者测试不大于100M），超出限制时将会发生“java.lang.OutOfMemoryError”错误，如果上传的文件很大，例如上传800M的文件，在内存中将无法保存该文件内容，Apache文件上传组件将用临时文件来保存这些数据；但如果上传的文件很小，例如上传600个字节的文件，显然将其直接保存在内存中更加有效。setSizeThreshold方法用于设置是否使用临时文件保存解析出的数据的那个临界值，该方法传入的参数的单位是字节。其完整语法定义如下：
+public void setSizeThreshold(int sizeThreshold)
+3. setRepositoryPath方法
+setRepositoryPath方法用于设置setSizeThreshold方法中提到的临时文件的存放目录，这里要求使用绝对路径。其完整语法定义如下：
+public void setRepositoryPath(String repositoryPath)
+如果不设置存放路径，那么临时文件将被储存在"java.io.tmpdir"这个JVM环境属性所指定的目录中，tomcat 5.5.9将这个属性设置为了“<tomcat安装目录>/temp/”目录。
+4. parseRequest方法
+parseRequest 方法是DiskFileUpload类的重要方法，它是对HTTP请求消息进行解析的入口方法，如果请求消息中的实体内容的类型不是“multipart/form-data”，该方法将抛出FileUploadException异常。parseRequest 方法解析出FORM表单中的每个字段的数据，并将它们分别包装成独立的FileItem对象，然后将这些FileItem对象加入进一个List类型的集合对象中返回。parseRequest 方法的完整语法定义如下：
+public List parseRequest(HttpServletRequest req)
+parseRequest 方法还有一个重载方法，该方法集中处理上述所有方法的功能，其完整语法定义如下：
+parseRequest(HttpServletRequest req,int sizeThreshold,long sizeMax,
+            String path)
+这两个parseRequest方法都会抛出FileUploadException异常。
+5. isMultipartContent方法
+isMultipartContent方法方法用于判断请求消息中的内容是否是“multipart/form-data”类型，是则返回true，否则返回false。isMultipartContent方法是一个静态方法，不用创建DiskFileUpload类的实例对象即可被调用，其完整语法定义如下：
+public static final boolean isMultipartContent(HttpServletRequest req)
+6. setHeaderEncoding方法
+由于浏览器在提交FORM表单时，会将普通表单中填写的文本内容传递给服务器，对于文件上传字段，除了传递原始的文件内容外，还要传递其文件路径名等信息，如后面的图1.3所示。不管FORM表单采用的是“application/x-www-form-urlencoded”编码，还是“multipart/form-data”编码，它们仅仅是将各个FORM表单字段元素内容组织到一起的一种格式，而这些内容又是由某种字符集编码来表示的。关于浏览器采用何种字符集来编码FORM表单字段中的内容，请参看笔者编著的《深入体验java Web开发内幕——核心基础》一书中的第6.9.2的讲解，“multipart/form-data”类型的表单为表单字段内容选择字符集编码的原理和方式与“application/x-www-form-urlencoded”类型的表单是相同的。FORM表单中填写的文本内容和文件上传字段中的文件路径名在内存中就是它们的某种字符集编码的字节数组形式，Apache文件上传组件在读取这些内容时，必须知道它们所采用的字符集编码，才能将它们转换成正确的字符文本返回。
+对于浏览器上传给WEB服务器的各个表单字段的描述头内容，Apache文件上传组件都需要将它们转换成字符串形式返回，setHeaderEncoding 方法用于设置转换时所使用的字符集编码，其原理与笔者编著的《深入体验Java Web开发内幕——核心基础》一书中的第6.9.4节讲解的ServletRequest.setCharacterEncoding方法相同。setHeaderEncoding 方法的完整语法定义如下：
+public void setHeaderEncoding(String encoding)
+其中，encoding参数用于指定将各个表单字段的描述头内容转换成字符串时所使用的字符集编码。
+注意：如果读者在使用Apache文件上传组件时遇到了中文字符的乱码问题，一般都是没有正确调用setHeaderEncoding方法的原因。
+ 
+ 
+下面介绍FileItem类中的几个常用的方法：
+1. isFormField方法
+isFormField方法用于判断FileItem类对象封装的数据是否属于一个普通表单字段，还是属于一个文件表单字段，如果是普通表单字段则返回true，否则返回false。该方法的完整语法定义如下：
+public boolean isFormField()
+2. getName方法
+getName方法用于获得文件上传字段中的文件名，对于图1.3中的第三个分区所示的描述头，getName方法返回的结果为字符串“C:/bg.gif”。如果FileItem类对象对应的是普通表单字段，getName方法将返回null。即使用户没有通过网页表单中的文件字段传递任何文件，但只要设置了文件表单字段的name属性，浏览器也会将文件字段的信息传递给服务器，只是文件名和文件内容部分都为空，但这个表单字段仍然对应一个FileItem对象，此时，getName方法返回结果为空字符串""，读者在调用Apache文件上传组件时要注意考虑这个情况。getName方法的完整语法定义如下：
+public String getName()
+注意：如果用户使用Windows系统上传文件，浏览器将传递该文件的完整路径，如果用户使用Linux或者Unix系统上传文件，浏览器将只传递该文件的名称部分。
+3．getFieldName方法
+getFieldName方法用于返回表单字段元素的name属性值，也就是返回图1.3中的各个描述头部分中的name属性值，例如“name=p1”中的“p1”。getFieldName方法的完整语法定义如下：
+public String getFieldName()
+4. write方法
+write方法用于将FileItem对象中保存的主体内容保存到某个指定的文件中。如果FileItem对象中的主体内容是保存在某个临时文件中，该方法顺利完成后，临时文件有可能会被清除。该方法也可将普通表单字段内容写入到一个文件中，但它主要用途是将上传的文件内容保存在本地文件系统中。其完整语法定义如下：
+public void write(File file)
+5．getString方法
+    getString方法用于将FileItem对象中保存的主体内容作为一个字符串返回，它有两个重载的定义形式：
+public java.lang.String getString()
+public java.lang.String getString(java.lang.String encoding)
+    throws java.io.UnsupportedEncodingException
+前者使用缺省的字符集编码将主体内容转换成字符串，后者使用参数指定的字符集编码将主体内容转换成字符串。如果在读取普通表单字段元素的内容时出现了中文乱码现象，请调用第二个getString方法，并为之传递正确的字符集编码名称。
+6. getContentType方法
+getContentType 方法用于获得上传文件的类型，对于图1.3中的第三个分区所示的描述头，getContentType方法返回的结果为字符串“image/gif”，即“Content-Type”字段的值部分。如果FileItem类对象对应的是普通表单字段，该方法将返回null。getContentType 方法的完整语法定义如下：
+public String getContentType()
+7. isInMemory方法
+isInMemory方法用来判断FileItem类对象封装的主体内容是存储在内存中，还是存储在临时文件中，如果存储在内存中则返回true，否则返回false。其完整语法定义如下：
+public boolean isInMemory()
+8. delete方法
+delete方法用来清空FileItem类对象中存放的主体内容，如果主体内容被保存在临时文件中，delete方法将删除该临时文件。尽管Apache组件使用了多种方式来尽量及时清理临时文件，但系统出现异常时，仍有可能造成有的临时文件被永久保存在了硬盘中。在有些情况下，可以调用这个方法来及时删除临时文件。其完整语法定义如下：
+public void delete()
+1.2.4 FileUploadException类
+在文件上传过程中，可能发生各种各样的异常，例如网络中断、数据丢失等等。为了对不同异常进行合适的处理，Apache文件上传组件还开发了四个异常类，其中FileUploadException是其他异常类的父类，其他几个类只是被间接调用的底层类，对于Apache组件调用人员来说，只需对FileUploadException异常类进行捕获和处理即可。
