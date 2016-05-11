@@ -1,0 +1,113 @@
+ServletConfig与ServletContext对象详解 (2011-01-17 18:48:25)转载▼
+标签： javaee	分类： 我爱java
+ServletConfig与ServletContext对象详解
+一、ServletConfig对象
+    在Servlet的配置文件中，可以使用一个或多个<init-param>标签为servlet配置一些初始化参数。（配置在某个servlet标签或者整个web-app下）
+    当servlet配置了初始化参数后，web容器在创建servlet实例对象时，会自动将这些初始化参数封装到ServletConfig对象中，并在调用servlet的init方法时，将ServletConfig对象传递给servlet。进而，程序员通过ServletConfig对象就可以得到当前servlet的初始化参数信息。
+首先，需要创建私有变量：private ServletConfig config = null;
+其次，要重写init方法，传入config，令this.config = config;从而获得ServletConfig对象
+最后，就可以获得<init-parm>中的配置信息了
+//获取初始化参数
+  String value1 = this.config.getInitParameter("x1");
+//获得配置文档中<init-param>标签下name对应的value
+  String vlaue2 = this.config.getInitParameter("x2");
+  
+  //2.获取所有的初始化参数（用Enumeration接收）
+  Enumeration e = this.config.getInitParameterNames();
+  while(e.hasMoreElements()){
+   String name = (String) e.nextElement();
+   String value = this.config.getInitParameter(name);
+   System.out.println(name + "=" + value);
+  }
+    在开发中ServletConfig的作用有如下三个：
+1）获得字符集编码
+  String charset = this.config.getInitParameter("charset");
+2）获得数据库连接信息
+  String url = this.config.getInitParameter("url");
+  String username = this.config.getInitParameter("username");
+  String password = this.config.getInitParameter("password");
+3）获得配置文件
+  String configFile = this.config.getInitParameter("config");
+
+二、ServletContext对象
+  WEB容器在启动时，它会为每个WEB应用程序都创建一个对应的ServletContext对象，它代表当前web应用。
+  1）ServletContext对象应用1：多个web组件之间使用它实现数据共享
+  ServletConfig对象中维护了ServletContext对象的引用，开发人员在编写servlet时，可以通过ServletConfig.getServletContext方法获得ServletContext对象。由于一个WEB应用中的所有Servlet共享同一个ServletContext对象，因此Servlet对象之间可以通过ServletContext对象来实现通讯。ServletContext对象通常也被称之为context域对象。
+在serlvet中，可以使用如下语句来设置数据共享
+  ServletContext context = this.getServletContext();  //servletContext域对象
+  context.setAttribute("data", "共享数据"); //向域中存了一个data属性
+在另一个servlet中，可以使用如下语句来获取域中的data属性
+  ServletContext context = this.getServletContext();
+  String value = (String) context.getAttribute("data");  //获取域中的data属性
+  System.out.println(value);
+  2）通过servletContext对象获取到整个web应用的配置信息
+  String url = this.getServletContext().getInitParameter("url");
+  String username = this.getServletContext().getInitParameter("username");
+  String password = this.getServletContext().getInitParameter("password");
+  3）通过servletContext对象实现servlet转发
+由于servlet中的java数据不易设置样式，所以serlvet可以将java数据转发到JSP页面中进行处理
+  this.getServletContext().setAttribute("data","serlvet数据转发");
+  RequestDispatcher rd = this.getServletContext().getRequestDispatcher("/viewdata.jsp");
+  rd.forward(request, response);
+  4）通过servletContext对象读取资源文件
+  在实际开发中，用作资源文件的文件类型，通常是：xml、properties，而读取xml文件必然要进行xml文档的解析，所以以下例子只对properties文件进行读取(在一个web工程中，只要涉及到写地址，建议最好以/开头)
+  在web工程中，我们一般来说，是不能采用传统方式读取配置文件的，因为相对的是jvm的启动目录(tomcat的bin目录)，所以我们要使用web绝对目录来获取配置文件的地址
+  读取资源文件的三种方式：
+  第一种：使用ServletContext的getResourceAsStream方法：返回资源文件的读取字节流
+  InputStream in = this.getServletContext().getResourceAsStream("/WEB-INF/classes/db.properties");
+  Properties prop = new Properties();  
+  prop.load(in);
+  String url = prop.getProperty("url");
+  第二种：使用ServletContext的getRealPath方法，获得文件的完整绝对路径path，再使用字节流读取path下的文件
+  String path = this.getServletContext().getRealPath("/WEB-INF/classes/db.properties");
+  String filename = path.substring(path.lastIndexOf("\\")+1); 
+  //相比第一种方法的好处是：除了可以获取数据，还可以获取资源文件的名称
+  FileInputStream in = new FileInputStream(path);
+  Properties prop = new Properties();
+  prop.load(in);
+  String url = prop.getProperty("url");
+  第三种：使用ServletContext的getResource方法，获得一个url对象，调用该类的openStream方法返回一个字节流，读取数据
+  URL url = this.getServletContext().getResource("/WEB-INF/classes/db.properties");
+  InputStream in = url.openStream();
+  Properties prop = new Properties();
+  prop.load(in);
+  String url1 = prop.getProperty("url");
+  5）web工程中，不同位置的资源文件的读取方式
+  一、当资源文件在包下面时
+  InputStream in = this.getServletContext().getResourceAsStream("/WEB-INF/classes/cn/itcast/context/db.properties");
+  System.out.println(in);
+  
+  二、资源文件在web-inf下
+  in = this.getServletContext().getResourceAsStream("/WEB-INF/db.properties");
+  System.out.println(in);
+  
+  三、资源文件在web工程中
+  in = this.getServletContext().getResourceAsStream("/db.properties");
+  System.out.println(in);
+  6）在非servlet程序中如何读取配置文件:用类装载器
+1）用类装载方式读取 
+ in = StudentDao.class.getClassLoader().getResourceAsStream("cn/itcast/context/db.properties");
+2）用类装载方式读取，把资源当作url对待
+ URL url = StudentDao.class.getClassLoader().getResource("db.properties");
+ 这样可以获得资源文件名称：String path = url.getPath();
+3）注意：在线程休眠过程中，即使改动了资源文件，获取到的还是原始内容
+解决方案：
+  URL url = StudentDao.class.getClassLoader().getResource("db.properties");
+  String path = url.getPath();
+  
+  FileInputStream in = new FileInputStream(path);
+  Properties prop = new Properties();
+  prop.load(in);
+  System.out.println(prop.getProperty("url"));
+  
+  try {
+   Thread.sleep(1000*15);
+  } catch (InterruptedException e) {
+    e.printStackTrace();
+  }
+  in = new FileInputStream(path);
+  prop = new Properties();
+  prop.load(in);
+  System.out.println(prop.getProperty("url"));
+ 
+4）注意：用类装载器读取资源文件时，千万要注意，资源文件绝对不能太大，否则极易导致内存溢出
