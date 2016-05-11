@@ -1,0 +1,10 @@
+document.writeln("<script async src=\"//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js\"></script>");
+document.writeln("<!-- bkjia-banner -->");
+document.writeln("<ins class=\"adsbygoogle\"");
+document.writeln("     style=\"display:block\"");
+document.writeln("     data-ad-client=\"ca-pub-2290945697182720\"");
+document.writeln("     data-ad-slot=\"5698960890\"");
+document.writeln("     data-ad-format=\"auto\"></ins>");
+document.writeln("<script>");
+document.writeln("(adsbygoogle = window.adsbygoogle || []).push({});");
+document.writeln("</script>");
