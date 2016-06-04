@@ -1,0 +1,58 @@
+
+MVC架构模式分析与设计
+	|--data
+	     |--cache
+	     |--template_c
+	|--framework:微型框架层
+	     |--function:函数库
+		 |--function.php：各种常用功能的封装，如M、V、C、ORG等
+	     |--libs:各类库
+		 |--core:核心类库,如何调用DB引擎库等
+		      |--DB.class.php:数据库工厂抽象类
+		      |--VIEW.class.php:视图引擎工厂抽象类
+		 |--db:DB引擎库
+		    |--mysql.class.php:具体数据库类,将通过DB.class.php实例化
+		 |--view:视图引擎库
+		    |--Smarty:Smarty视图引擎
+	     |--include.list.php:require清单文件
+	     |--pc.php:启动引擎
+	|--img:存放各类图片
+	     |--css
+	     |--images
+	     |--js
+	|--libs:MVC模型层
+	     |--Controller:控制器
+		    |--adminController.class.php:登录处理等
+	     |--Model
+		   |--adminModel.class.php前台登陆模型层：获取数据库中的用户信息
+		   |--authModel.class.php对用户名和密码进行验证
+		   |--newsModel.class.php新闻页模型，对应于数据库news表
+	     |--View 
+	|--tpl
+	     |--admin
+		  |--login.html:前台登陆界面
+		  |--index.html:新闻首页
+		  |--newsadd.html:添加新闻页
+		  |--newslist.html:添加新闻页
+	|--admin.php:各种文件、类库的最终引入与初始化
+	|--config.php:视图引擎和数据库的配置
+
+注：
+框架组织结构：
+   1.函数库：经常用到的函数，可以将其封装起来
+   2.类库：
+      a) 视图引擎库
+      b) DB引擎库
+      c) 核心库
+   3.require文件清单
+   4.启动引擎程序
+微型框架的编写流程：
+	1.mysql.php
+	2.DB.class.php
+	3.VIEW.class.php
+	4.function.php
+	5.include.list.php
+	6.pc.php
+	7.config.php
+	8.admin.php
+DB.class.php、VIEW.class.php、mysql.class.php组成了一个简单工厂模式

@@ -1,0 +1,21 @@
+PHP_APP-API
+    |--files
+	 |--index_cron_cahce.txt:定时缓存文件
+	 |--index_mk_cahce1-6.txt:缓存文件
+    |--logs
+	 |--14-08-06.txt:错误日志
+    |--Response
+	 |--json.php:
+	 |--xml.php:
+    |--api.php:
+    |--common.php:公共业务处理类，如检查客户端访问服务端权限
+    |--cron.php:生成定时缓存文件
+    |--db.php:数据库连接等
+    |--error.php:将客户端错误日志存放到数据库
+    |--file.php:生成缓存工具类
+    |--init.php:版本升级处理类
+    |--getdata_cache.php:从缓存文件中获取数据
+    |--getdata_cron.php:从定时缓存文件中获取数据
+    |--getdata_mysql.php:从数据库中获取数据
+    |--response.php:将数组数据以json或xml形式输出
+    |--inithtml.html:用于模拟客户端请求版本更新

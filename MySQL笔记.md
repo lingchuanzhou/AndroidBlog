@@ -1,6 +1,14 @@
-﻿一、sql语句
+##mysql管理：
+	1.mysql登陆：
+	[root@host]# mysql -u root -p
+	Enter password:123456
+	2.mysql退出：
+		mysql>exit
+	
+	
+##一、sql语句
 
-1.操作数据库
+	1.操作数据库
 	(1)创建数据库
 		CREATE  DATABASE  [IF NOT EXISTS] db_name [create_specification [, create_specification] ...] 
 		create_specification:??? 
@@ -37,7 +45,7 @@
 	(5)选择数据库
 		进入数据库:use db_name;
 		查看当前所选的数据库: select database();
-2.操作表
+	2.操作表
 	(1)创建表
 		CREATE TABLE table_name
 		(
@@ -103,7 +111,7 @@
 
 		~删除user表
 			drop table user;
-3.操作表记录CRUD
+	3.操作表记录CRUD
 	(1)INSERT
 		INSERT INTO table [(column [, column...])] VALUES (value [, value...]);
 		注意事项：
@@ -181,9 +189,9 @@
 				math double,
 				english double
 				);
-insert into exam values(null,'关羽',85,76,70);
-insert into exam values(null,'张飞',70,76,70);
-insert into exam values(null,'赵云',90,76,70);
+	insert into exam values(null,'关羽',85,76,70);
+	insert into exam values(null,'张飞',70,76,70);
+	insert into exam values(null,'赵云',90,76,70);
 	
 		~1.基本查询
 			SELECT [DISTINCT] *|{column1, column2. column3..} FROM	table;
